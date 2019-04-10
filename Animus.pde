@@ -110,9 +110,9 @@ void setup() {
     
     beat = new BeatDetect(input.bufferSize(), input.sampleRate());
 
-    nameFont = createFont("agency-fb.ttf",16,true);
+    nameFont = createFont("agency-fb.ttf",256,true);
 
-    myMovie = new Movie(this, "cover1.mov");
+    myMovie = new Movie(this, "cover5.mov");
     myMovie.loop();
     
     fft = new FFT(input.bufferSize(), input.sampleRate());
@@ -197,7 +197,7 @@ void draw() {
      image(myMovie, 0, 0, width, height);
             
             
-            textFont(nameFont, 175);
+            textFont(nameFont, 87.5);
             //            textFont(nameFont, 175+100*input.mix.level());
 
             
