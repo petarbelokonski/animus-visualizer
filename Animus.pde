@@ -60,6 +60,8 @@ Movie myMovie;
 FFT fft;
 float[] spectrum = new float[512];
 int increment = 0;
+int two = 0;
+float level;
 
 public void settings() {
   size(displayWidth, displayHeight, P3D);
@@ -181,10 +183,39 @@ void draw() {
         // tint(255, (int)interfaceT);
     }
 
+
+  if (showAnimation) {
+     image(myMovie, 0, 0, width, height);
+
+        pushStyle();
+        pushMatrix();
+        visualizers[select].retrieveSound();
+        // strokeCap(ROUND);
+        // shader(spriteShader, POINTS);
+        visualizers[select].draw();
+        blendMode(BLEND);
+        popMatrix();
+        popStyle();
+        noLights();
+        updateGui();
+        contrast = visualizers[select].contrast;
+    } 
+
+    volumeBar.visible = showInterface;
+
+    if (visualizers[select].sampleParticleMode) {
+        float avgFr = visualizers[select].sampleFrameRate();
+        if (avgFr > 0) {
+            visualizers[select].adjustDetail(avgFr);
+        }
+    }
+
     if (showName) {
 
     background(0);
     stroke(255);
+
+    image(myMovie, 0, 0, width, height);
   
     //     int x = 10;
 
@@ -194,11 +225,11 @@ void draw() {
     //        // textWidth() spaces the characters out properly.
     //        x += textWidth(message.charAt(i)); 
     //     }
-     image(myMovie, 0, 0, width, height);
             
+    
             
-            textFont(nameFont, 87.5);
-            //            textFont(nameFont, 175+100*input.mix.level());
+            // textFont(nameFont, 150);
+                       textFont(nameFont, 100+100*input.mix.level());
 
             
             beat.detect(input.mix);
@@ -210,14 +241,60 @@ void draw() {
         //  line( i, 50 + input.left.get(i)*50, i+1, 50 + input.left.get(i+1)*50 );
         //     line( i, 150 + input.right.get(i)*50, i+1, 150 + input.right.get(i+1)*50 );
             // if(i%31==1) {
-            
-            text("Purple Banana Syndicate", displayWidth*1/2, input.left.get(increment)*500+displayHeight*1/2);
-            // }
+        
+            if (increment%8==0){
+                fill(255,255,255); 
+                
+            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+            }
+             else{ text("ARKS", displayWidth*1/2, displayHeight*1/2);
+            }
 
-            increment+=5;
-            if (increment > 480 ){
+             if(increment%32==0){
+                // textFont(nameFont, displayWidth);
+fill(0,255,0); 
+                // fill(input.mix.get(increment)*200+20, input.mix.get(250)*100+15, 50);  
+
+                text("ARKS", displayWidth*1/2, displayHeight*1/2);
+            }
+            
+
+            level = input.mix.level();
+
+             if (level>0.1 && level<0.2){
+                textFont(nameFont, displayWidth/4);
+                fill(255,255,255,57);  
+
+                text("ARKS", displayWidth*1/2, displayHeight*1/2);
+
+            }
+
+             if (level>0.2 && level<0.3){
+                textFont(nameFont, displayWidth/2);
+                fill(0,0,0,57);  
+
+                pushMatrix();
+                scale(1, -1);
+                text("ARKS", displayWidth*1/2, displayHeight*1/2);
+                popMatrix();
+            }
+ 
+            if (level>0.4 && level<0.5){
+                textFont(nameFont, displayWidth/12);
+                fill(255,255,255,57);  
+
+                
+                pushMatrix();
+                scale(10, -2);
+                text("ARKS", displayWidth*1/2, displayHeight*1/2);
+                popMatrix();
+            }
+
+            increment+=2;
+            if (increment >= input.bufferSize() ){
                 increment = 0;
             } 
+            
 //    }
 //     //   textFont(nameFont, 66+input.left.get(i)*2);
 //      print(input.mix.get(i));
@@ -298,29 +375,7 @@ void draw() {
         updateGui();
     }
 
-    if (showAnimation) {
-        pushStyle();
-        pushMatrix();
-        visualizers[select].retrieveSound();
-        // strokeCap(ROUND);
-        // shader(spriteShader, POINTS);
-        visualizers[select].draw();
-        blendMode(BLEND);
-        popMatrix();
-        popStyle();
-        noLights();
-        updateGui();
-        contrast = visualizers[select].contrast;
-    } 
-
-    volumeBar.visible = showInterface;
-
-    if (visualizers[select].sampleParticleMode) {
-        float avgFr = visualizers[select].sampleFrameRate();
-        if (avgFr > 0) {
-            visualizers[select].adjustDetail(avgFr);
-        }
-    }
+  
 }
 
 // Called every time a new frame is available to read
