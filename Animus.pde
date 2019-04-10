@@ -1,6 +1,10 @@
 import ddf.minim.*;
 import controlP5.*;
 import java.util.*;
+import processing.video.*;
+// import processing.sound.*;
+import ddf.minim.analysis.*;
+
 
 final float PHI = (1.0 + sqrt(5.0)) / 2.0;
 final int FONT_SIZE = 14;
@@ -14,15 +18,14 @@ Minim minim;
 AudioInput input;
 Visualizer[] visualizers;
 int select;
-float lastMouseX;
-float lastMouseY;
-float lastMillis;
+float lastMouseX, lastMouseY, lastMillis;
+
 //Gui
 ControlP5 cp5;
 VolumeBar volumeBar;
 CheckBox[] buttons;
 Textlabel[] buttonLabels;
-CheckBox highlight, expand, revolve, particles, front, rear, top, autoPan, viewing, blur, invert, ring, fluid, droplet;
+CheckBox highlight, expand, revolve, particles, front, rear, top, autoPan, viewing, blur, invert, ring, fluid, droplet, name, animation;
 Textlabel interfaceLabel;
 boolean load;
 float sliderVal;
@@ -31,10 +34,32 @@ PFont font;
 // PageDot[] dots;
 boolean showInterface;
 boolean debugMode;
-float showIntro = 255;
+float showIntro = 0; // originally at 255, we don't need intro, so set it at 0
 float interfaceT;
 int contrast;
 PImage cam, modeBackground;
+
+boolean showName, showAnimation;
+
+PFont f, nameFont;
+String message = "Purple Banana Syndicate Raw Dope Bass 2.";
+
+// Global variables
+ArrayList<Particle> particlesme = new ArrayList<Particle>();
+int pixelSteps = 6; // Amount of pixels to skip
+boolean drawAsPoints = false;
+ArrayList<String> words = new ArrayList<String>();
+int wordIndex = 0;
+color bgColor = color(255, 100);
+String fontName = "Arial Bold";
+
+//MyThread thread;
+BeatDetect beat;
+Movie myMovie;
+
+FFT fft;
+float[] spectrum = new float[512];
+int increment = 0;
 
 public void settings() {
   size(displayWidth, displayHeight, P3D);
@@ -56,7 +81,7 @@ void setup() {
     // showInterface = true;
     Visualizer ring, fluid, droplet;
     logo = loadImage("Logo.png");
-    AudioInput input = minim.getLineIn(Minim.STEREO, 512);
+    input = minim.getLineIn(Minim.STEREO, 512);
     cam = loadImage("Camera.png");
     modeBackground = loadImage("ModeSelector.png");
     ring = new Ring(input);
@@ -74,67 +99,42 @@ void setup() {
     //     float dx = (width / 2 - w) + (2 * dist * i + (dist / 2));
     //     dots[i] = new PageDot(dx, height - dist * 2, dist / 2, visualizers[i].name);
     // }
-    buttons = new CheckBox[14];
-    buttonLabels = new Textlabel[14];
+    buttons = new CheckBox[16];
+    buttonLabels = new Textlabel[16];
     cp5 = new ControlP5(this);
     guiSetup(cFont);
     visualizers[select].setup();
-    background(0);
+
+
+    background(255, 204, 0);
+    
+    beat = new BeatDetect(input.bufferSize(), input.sampleRate());
+
+    nameFont = createFont("agency-fb.ttf",16,true);
+
+    myMovie = new Movie(this, "cover1.mov");
+    myMovie.loop();
+    
+    fft = new FFT(input.bufferSize(), input.sampleRate());
+    // fft.input(input);
+
 }
 
-// class PageDot {
-//     float x, y, radius;
-//     String name;
-//     boolean overDot;
+/// TODO:
+//
+// - commit and clean up code
+/// - video overlay color when animation 
+/// - make video shorter to use less memo
+/// - experiment with different video styles /maybe switch between a few of them
+/// - full screen mode
+/// - make the text go bigger based on equalizer
+/// - make the text change position and color based on kick/snare
+/// - draw lines positioned randomly with the text which sized also based on equalizer
+///
+//
 
-//     PageDot(float x, float y, float radius, String name) {
-//         this.x = x;
-//         this.y = y;
-//         this.radius = radius;
-//         this.name = name; 
-//         overDot = false;
-//     }    
-    
-//     void update() {
-//         float dx = x - mouseX;
-//         float dy = y - mouseY;
-//         stroke(255 - visualizers[select].contrast);
-//         if (sqrt(sq(dx) + sq(dy)) < (radius + 2)) {
-//             overDot = true;
-//             strokeWeight(3);
-//         } else {
-//             overDot = false;
-//             strokeWeight(1.2);
-//         }
-//         ellipse(x, y, radius, radius);
-//     }
-// }
 
 void draw() {
-
-    pushStyle();
-    pushMatrix();
-
-    visualizers[select].retrieveSound();
-    // strokeCap(ROUND);
-    // shader(spriteShader, POINTS);
-    visualizers[select].draw();
-
-    blendMode(BLEND);
-    popMatrix();
-    popStyle();
-    noLights();
-    
-    updateGui();
-
-    contrast = visualizers[select].contrast;
-    if(showIntro == 0) {
-        image(cam, width - 147, TEXT_OFFSET + 266);
-        image(modeBackground, width - 212 + 31, TEXT_OFFSET + 23);
-        volumeBar.update();
-        sliderVal = volumeBar.value;
-    }
-    
     if (showInterface) {
         // interfaceT = lerp(interfaceT, 255, .01);
         if (interfaceT < 255) {
@@ -142,8 +142,8 @@ void draw() {
             setGuiColors();
         }
         
-        tint(255, (int)interfaceT);
-     
+        // tint(255, (int)interfaceT);
+    
         boolean handOn = false;
         if (cp5.isMouseOver()) {
             handOn = true;
@@ -153,20 +153,6 @@ void draw() {
             buttons[i].setVisible(true);
         }
 
-        // for (int i = 0; i < dots.length; i++) {
-        //     if (i == select) {
-        //         fill(255 - visualizers[select].contrast);
-        //     } else {
-        //         fill(visualizers[select].contrast);
-        //     }
-        //     dots[i].update();
-        //     if (dots[i].overDot) {
-        //         handOn = true;
-        //         textAlign(CENTER, TOP);
-        //         fill(255 - visualizers[select].contrast);
-        //         text(dots[i].name, dots[i].x, dots[i].y - TEXT_OFFSET - dots[i].radius);
-        //     }
-        // }
         textAlign(CENTER, TOP);
         // fill(255 - visualizers[select].contrast);
 
@@ -188,25 +174,147 @@ void draw() {
             setInterfaceVisibility(false);
         }
 
-        tint(255, (int)interfaceT);
-    }
-
-    volumeBar.visible = showInterface;
-    if(showIntro != 0){
-        for(int i = 0; i < buttons.length; i++) {
+         for (int i = 0; i < buttons.length; i++) {
             buttons[i].setVisible(false);
         }
-        showIntro = (int)abs(showIntro - showIntro*.001);
-        showInterface = false; 
-        fill(0, (int)showIntro);
-        rect(0, 0, width, height);
-        tint(255, (int)showIntro);
-        image(logo, width / 2 - logo.width / 2, height / 2-logo.height / 2);
-        if (showIntro == 0) {
-            showInterface = true;
-            setInterfaceVisibility(true);
-        }
+
+        // tint(255, (int)interfaceT);
     }
+
+    if (showName) {
+
+    background(0);
+    stroke(255);
+  
+    //     int x = 10;
+
+    //     for (int i = 0; i < message.length(); i++) {  
+    //       textFont(nameFont, 66+50*input.mix.get(i));
+    //       text(message.charAt(i),400+x,height/2);
+    //        // textWidth() spaces the characters out properly.
+    //        x += textWidth(message.charAt(i)); 
+    //     }
+     image(myMovie, 0, 0, width, height);
+            
+            
+            textFont(nameFont, 175);
+            //            textFont(nameFont, 175+100*input.mix.level());
+
+            
+            beat.detect(input.mix);
+            textAlign(CENTER);
+//   draw the waveforms so we can see what we are monitoring
+    // print(input.bufferSize());
+//    for(int i = 0; i < input.bufferSize()-1; i+=32) {
+
+        //  line( i, 50 + input.left.get(i)*50, i+1, 50 + input.left.get(i+1)*50 );
+        //     line( i, 150 + input.right.get(i)*50, i+1, 150 + input.right.get(i+1)*50 );
+            // if(i%31==1) {
+            
+            text("Purple Banana Syndicate", displayWidth*1/2, input.left.get(increment)*500+displayHeight*1/2);
+            // }
+
+            increment+=5;
+            if (increment > 480 ){
+                increment = 0;
+            } 
+//    }
+//     //   textFont(nameFont, 66+input.left.get(i)*2);
+//      print(input.mix.get(i));
+
+//         if (input.left.get(i)%8==1) {
+
+       
+
+            // fill(255,255,255);
+            // if (beat.isKick()) {
+            //     fill(10, 50, 50);  
+            //     text("Purple Banana Syndicate", displayWidth*1/2, displayHeight*1/2);
+                
+            // } else if (beat.isSnare()) {
+            //     fill(input.mix.level()*110, 100, 50);  
+            //     text("Purple Banana Syndicate", displayWidth*1/15, displayHeight*1/3+random(-1,1)*1400);
+            // } else {
+            //     fill(218, 150, 150);  
+            //     text("Purple Banana Syndicate", displayWidth*1/17, displayHeight*1/2+random(-200,300));
+                
+            // }       
+
+        // } 
+// displayWidth, displayHeight
+    //  line( i, 50 + input.left.get(i)*50, i+1, 50 + input.left.get(i+1)*50 );
+    //  line( i, 150 + input.right.get(i)*50, i+1, 150 + input.right.get(i+1)*50 );
+//   }
+
+
+// text("Purple Banana Syndicate", 400+input.left.get(i)*2, 0);
+
+        // fft.forward(input.mix);
+
+        // for (int i = 0; i < fft.specSize(); i++) {
+        //     textFont(nameFont, 66 + fft.getBand(i));
+        //     // text("Purple Banana Syndicate", 400, 0);   
+        //     line(i, height, i, height - fft.getBand(i) * 4);
+        //     // line(i, height, i, height - fft.getBand(i) * 4);
+        // }
+
+        // image(myMovie, 0, 0, width, height);
+
+        // beat.detect(input.mix);
+        // textAlign(CENTER, TOP);
+        // fill(255,255,255);
+        // if (beat.isKick()) {
+            // textFont(nameFont, 66);
+            // text("Purple Banana Syndicate", 400+random(12,36), 0);    
+        //     fill(151,103,134);
+        //     text("Purple Banana Syndicate", 400+random(12,36), 0);    
+        //     fill(111,13,34);
+        //     text("Purple Banana Syndicate", 400+random(12,36), random(12,36));    
+        // } else if (beat.isSnare()) {
+
+        
+
+        //     textFont(nameFont, 26);
+        //     text("Purple Banana Syndicate", 400-random(12,36), 0);
+        // } else {
+        //     textFont(nameFont, 36);
+        //     text("Purple Banana Syndicate", 400, 0); 
+        // }
+        // //textFont(f);         
+        // int x = 10;
+        // for (int i = 0; i < message.length(); i++) {
+        //    textSize(random(12,36));
+        //    text(message.charAt(i),x,height/2);
+        //    // textWidth() spaces the characters out properly.
+        //    x += textWidth(message.charAt(i)); 
+        // }
+        ////noLoop()
+        
+           // Background & motion blur
+        //fill(bgColor);
+        //noStroke();
+        //rect(0, 0, width*2, height*2);
+        noLights();
+        updateGui();
+    }
+
+    if (showAnimation) {
+        pushStyle();
+        pushMatrix();
+        visualizers[select].retrieveSound();
+        // strokeCap(ROUND);
+        // shader(spriteShader, POINTS);
+        visualizers[select].draw();
+        blendMode(BLEND);
+        popMatrix();
+        popStyle();
+        noLights();
+        updateGui();
+        contrast = visualizers[select].contrast;
+    } 
+
+    volumeBar.visible = showInterface;
+
     if (visualizers[select].sampleParticleMode) {
         float avgFr = visualizers[select].sampleFrameRate();
         if (avgFr > 0) {
@@ -214,6 +322,12 @@ void draw() {
         }
     }
 }
+
+// Called every time a new frame is available to read
+void movieEvent(Movie m) {
+  m.read();
+}
+
 
 // void mousePressed() {
 //     for (int i = 0; i < dots.length; i++) {
@@ -302,6 +416,11 @@ void guiSetup(ControlFont font){
     buttonLabels[12] = cp5.addTextlabel("Sensitivity").setText("Mic Sensitivity");
     buttons[13] = droplet = cp5.addCheckBox("droplet").addItem("Droplet", 0);
     buttonLabels[13] = cp5.addTextlabel("name").setText(visualizers[select].name);
+    buttons[14] = name = cp5.addCheckBox("name").addItem("name [n]", 0);
+    buttonLabels[14] = cp5.addTextlabel("nameT").setText("Name [n]");
+    buttons[15] = animation = cp5.addCheckBox("animation").addItem("animation [v]", 0);
+    buttonLabels[15] = cp5.addTextlabel("animationT").setText("Animation [v]");
+
     
     float startHeight = TEXT_OFFSET + 92;
     PImage normal = loadImage("Button.png");
@@ -388,6 +507,13 @@ void controlEvent(ControlEvent theEvent) {
         select = 1;
     } else if (theEvent.isFrom(droplet)) {
         select = 2;
+    } else if (theEvent.isFrom(name)) {
+        // TODO: show on // off name
+        showName = !showName;
+        if (showName == true) {
+        }
+    } else if (theEvent.isFrom(animation)) {
+        showAnimation = !showAnimation;
     }
 }
 
@@ -458,17 +584,12 @@ void keyPressed() {
             debugMode = !debugMode;
             break;
         case 'h':
+            println("h pressed");
             showInterface = !showInterface;
             if (showInterface) {
                 setInterfaceVisibility(true);
             }
-            break;
-        case 'H':
-            showInterface = !showInterface;
-            if (showInterface) {
-                setInterfaceVisibility(true);
-            }
-            break;            
+            break;         
         case 'i':
             visualizers[select].contrast = 255 - visualizers[select].contrast;
             setGuiColors();
