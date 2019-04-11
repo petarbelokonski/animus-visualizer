@@ -275,8 +275,8 @@ void draw() {
                 fill(255,255,255,57);  
 
                 
-                translate(displayWidth,displayHeight);
                 pushMatrix();
+                translate(displayWidth,displayHeight);
                 scale(1, -1);
                 text("ARKS", displayWidth*1/2, displayHeight/2);
                 popMatrix();
@@ -290,7 +290,7 @@ void draw() {
 
                 pushMatrix();
                 scale(1, -1);
-                text("ARKS", displayWidth-random(displayWidth*1/2,displayWidth/1/2), displayHeight-200);
+                text("ARKS", displayWidth, displayHeight-200);
                 popMatrix();
                 
             }
