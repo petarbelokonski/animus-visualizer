@@ -9,9 +9,9 @@ final float PHI = (1.0 + sqrt(5.0)) / 2.0;
 final int FONT_SIZE = 14;
 final int TEXT_OFFSET = 20;
 final int INTERFACE_FADE_RATE = 10;
+
 PShader spriteShader;
-PImage sprite;
-PImage glow, glowBig, glowBig2;
+PImage sprite, glow, glowBig, glowBig2;
 
 Minim minim;
 AudioInput input;
@@ -26,21 +26,17 @@ CheckBox[] buttons;
 Textlabel[] buttonLabels;
 CheckBox highlight, expand, revolve, particles, front, rear, top, autoPan, viewing, blur, invert, ring, fluid, droplet, name, animation;
 Textlabel interfaceLabel;
-boolean load;
 float sliderVal;
 PImage logo;
 PFont font, nameFont;
-// PageDot[] dots;
-boolean showInterface;
-boolean debugMode;
+boolean load, showInterface, debugMode, showName, showAnimation;;
 float showIntro = 0; // originally at 255, we don't need intro, so set it at 0
 float interfaceT;
 int contrast;
 PImage cam, modeBackground;
 
-boolean showName, showAnimation;
-
-String message = "Purple Banana Syndicate Raw Dope Bass 2.";
+int nameIndex = 0;
+String[] names = {"Purple Banana Syndicate", "Arks", "Xylophobe", "digitalNightmarez", "Funk Aesthetics", "SECHNIA", "RawDope Bass 2"};
 
 BeatDetect beat;
 Movie myMovie;
@@ -99,15 +95,12 @@ void setup() {
 
 /// TODO:
 //
-// - commit and clean up code
 /// - video overlay color when animation 
 /// - make video shorter to use less memo
 /// - experiment with different video styles /maybe switch between a few of them
-/// - full screen mode
-/// - make the text go bigger based on equalizer
-/// - make the text change position and color based on kick/snare
 /// - draw lines positioned randomly with the text which sized also based on equalizer
-///
+/// - fix missing mic sensitivity mode
+/// - fix name dont showing 
 //
 void draw() {
     if (showInterface) {
@@ -181,21 +174,22 @@ void draw() {
         textFont(nameFont, 100+100*input.mix.level());
         beat.detect(input.mix);
         textAlign(CENTER);
+        String name = names[nameIndex];
         if (increment%8==0){
             fill(255,255,255); 
-            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+            text(name, displayWidth*1/2, displayHeight*1/2);
         } else {
-            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+            text(name, displayWidth*1/2, displayHeight*1/2);
         }
         if(increment%32==0){
             fill(15,18,51); 
-            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+            text(name, displayWidth*1/2, displayHeight*1/2);
         }
         level = input.mix.level();
         if (level>0.1 && level<0.2){
             textFont(nameFont, displayWidth/4);
             fill(255,255,255,80);  
-            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+            text(name, displayWidth*1/2, displayHeight*1/2);
         }
         if (level>0.2 && level<0.3){
             textFont(nameFont, displayWidth/12);
@@ -203,7 +197,7 @@ void draw() {
             pushMatrix();
             translate(displayWidth,displayHeight);
             scale(1, -1);
-            text("ARKS", displayWidth*1/2, displayHeight/2);
+            text(name, displayWidth*1/2, displayHeight/2);
             popMatrix();
         }
         if (level>0.4 && level<0.5){
@@ -211,7 +205,7 @@ void draw() {
             fill(15,18,51);
             pushMatrix();
             scale(1, -1);
-            text("ARKS", displayWidth, displayHeight-200);
+            text(name, displayWidth, displayHeight-200);
             popMatrix();
         }
         increment+=2;
@@ -416,67 +410,6 @@ void controlEvent(ControlEvent theEvent) {
     }
 }
 
-class VolumeBar {
-    int x;
-    int y;
-    float value;
-    PImage backgroundImg;
-    PImage midSection;
-    PImage end;
-    PImage backgroundImgI;
-    PImage midSectionI;
-    PImage endI;
-    int size;
-    boolean visible;
-    boolean invert;
-    
-    VolumeBar(int x, int y, String backgroundImg, String midSection, String end, String backgroundImgI, String midSectionI, String endI) {
-        this.x = x;
-        this.y = y; 
-        this.backgroundImg = loadImage(backgroundImg);
-        this.midSection = loadImage(midSection);
-        this.end = loadImage(end);
-        this.backgroundImgI = loadImage(backgroundImgI);
-        this.midSectionI = loadImage(midSectionI);
-        this.endI = loadImage(endI);
-        value = 0.5;
-        visible = true;
-    }
-    
-    //Visible is not Normal, The GUI handels showing/hiding images
-    void update() {
-        if(invert) {
-            image(backgroundImgI, x, y);
-        } else {
-            image(backgroundImg, x, y);
-        }
-        size = size >= 136 ? 136: size;
-        size = size <= 10 ? 10: size;
-        size = round(lerp(size, round(value * backgroundImg.width) - 9, .2));
-
-        for(int i = 0; i < size-end.width; i+=midSection.width) {
-            if(invert) {
-                image(midSectionI, int(this.x+11 + i), this.y);
-            } else {
-                image(midSection, int(this.x+11 + i), this.y);
-            }
-        }
-        if(invert) {
-            image(endI, this.x+size+4, this.y);
-        } else {
-            image(end, this.x+size+4, this.y);
-        }
-        if(visible) {
-            if(mousePressed) {
-              if(mouseX >= this.x && mouseX < this.x + this.backgroundImg.width &&
-               mouseY >= this.y && mouseY < this.y + this.backgroundImg.height) {
-                   value = map(mouseX - this.x, 0, this.backgroundImg.width, 0, 1);
-               }
-            }
-        }
-    }
-}
-
 void keyPressed() {
     switch (key) {
         case 'D':
@@ -497,6 +430,12 @@ void keyPressed() {
             visualizers[select].contrast = 255 - visualizers[select].contrast;
             setGuiColors();
             break;            
+        case 'n':
+            nameIndex++;
+            if (nameIndex == names.length) {
+                nameIndex = 0;
+            }
+            break;
         default:
             break;
     }
