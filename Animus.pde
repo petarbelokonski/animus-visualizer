@@ -65,6 +65,7 @@ float level;
 
 public void settings() {
   size(displayWidth, displayHeight, P3D);
+  fullScreen();
   smooth(8);
 }
 
@@ -94,6 +95,7 @@ void setup() {
     frameRate(visualizers[select].getOptimalFrameRate());
     ellipseMode(CENTER);
     ellipseMode(RADIUS);
+
     // dots = new PageDot[visualizers.length];
     // float dist = 13;
     // for (int i = 0; i < dots.length; i++) {
