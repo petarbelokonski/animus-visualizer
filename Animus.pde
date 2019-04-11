@@ -24,19 +24,19 @@ ControlP5 cp5;
 VolumeBar volumeBar;
 CheckBox[] buttons;
 Textlabel[] buttonLabels;
-CheckBox highlight, expand, revolve, particles, front, rear, top, autoPan, viewing, blur, invert, ring, fluid, droplet, name, animation;
+CheckBox highlight, expand, revolve, particles, front, rear, top, autoPan, viewing, blur, invert, ring, fluid, droplet, name, animation, background;
 Textlabel interfaceLabel;
-float sliderVal;
+float sliderVal = 0.5;
 PImage logo;
 PFont font, nameFont;
-boolean load, showInterface, debugMode, showName, showAnimation;;
-float showIntro = 0; // originally at 255, we don't need intro, so set it at 0
+boolean load, showInterface, debugMode, showName, showAnimation, showBackground;
 float interfaceT;
 int contrast;
 PImage cam, modeBackground;
 
+// switch between names by pressing 'l'
 int nameIndex = 0;
-String[] names = {"Purple Banana Syndicate", "Arks", "Xylophobe", "digitalNightmarez", "Funk Aesthetics", "SECHNIA", "RawDope Bass 2"};
+String[] names = {"Purple Banana Syndicate", "e:Lee", "Arks", "Xylophobe", "digitalNightmarez", "Funk Aesthetics", "SECHNIA", "RawDope Bass 2"};
 
 BeatDetect beat;
 Movie myMovie;
@@ -46,9 +46,12 @@ float[] spectrum = new float[512];
 int increment = 0;
 float level;
 
+float opacityFade;
+
+
 public void settings() {
   size(displayWidth, displayHeight, P3D);
-  fullScreen(P3D, SPAN);
+//   fullScreen(P3D, SPAN);
   smooth(8);
 }
 
@@ -79,13 +82,14 @@ void setup() {
     ellipseMode(CENTER);
     ellipseMode(RADIUS);
 
-    buttons = new CheckBox[16];
-    buttonLabels = new Textlabel[16];
+    buttons = new CheckBox[17];
+    buttonLabels = new Textlabel[17];
     cp5 = new ControlP5(this);
     guiSetup(cFont);
     visualizers[select].setup();
 
-    background(255, 204, 0);    
+
+    background(255, 204, 230);    
     beat = new BeatDetect(input.bufferSize(), input.sampleRate());
     nameFont = createFont("agency-fb.ttf",256,true);
     myMovie = new Movie(this, "cover5.mov");
@@ -102,78 +106,47 @@ void setup() {
 /// - fix missing mic sensitivity mode
 /// - fix name dont showing 
 //
+
 void draw() {
-    if (showInterface) {
-        // interfaceT = lerp(interfaceT, 255, .01);
-        if (interfaceT < 255) {
-            interfaceT += INTERFACE_FADE_RATE;
-            setGuiColors();
-        }
-        // tint(255, (int)interfaceT);
-        boolean handOn = false;
-        if (cp5.isMouseOver()) {
-            handOn = true;
-        }
-        for (int i = 0; i < buttons.length; i++) {
-            buttons[i].setVisible(true);
-        }
-        textAlign(CENTER, TOP);
-        // fill(255 - visualizers[select].contrast);
-        if (debugMode) {
-            visualizers[select].displayDebugText();
-        }
-        if (handOn) {
-            cursor(HAND);
-        } else {
-            cursor(ARROW);
-        }
-    } else {
-        checkMouse();
-        // interfaceT = lerp(interfaceT, 0, .2);
-        if (interfaceT > 0) {
-            interfaceT -= INTERFACE_FADE_RATE;
-            setGuiColors();
-        } else {
-            setInterfaceVisibility(false);
-        }
-        for (int i = 0; i < buttons.length; i++) {
-            buttons[i].setVisible(false);
-        }
-        // tint(255, (int)interfaceT);
-    }
+    showInterfaceIfNeeded();
+    showBackgroundIfNeeded();
+    showAnimationIfNeeded();
+    showNameIfNeeded();
+}
 
-  if (showAnimation) {
+ void setBackground(int backgroundColor, int opacity) {
+        hint(DISABLE_DEPTH_TEST);
+        noStroke();
+
+        opacityFade = lerp(opacityFade, opacity, .05);
+        fill(backgroundColor, (int)opacityFade);
+        rect(0, 0, width, height);
+        hint(ENABLE_DEPTH_TEST);
+        fill(255);
+        if (backgroundColor == 0) {
+            blendMode(SCREEN);
+        } else {
+            blendMode(DIFFERENCE);
+        }
+        hint(DISABLE_DEPTH_MASK);
+ }
+
+void showBackgroundIfNeeded() {
+    if (showBackground) {
+        // TODO: add "overlay effect" so that video looks with a blur overlay like the animation
+        // rect(0, 0, width, height);
+        // hint(ENABLE_DEPTH_TEST);
+        // fill(255);
+        // blendMode(DIFFERENCE);
+        // hint(DISABLE_DEPTH_MASK);
         image(myMovie, 0, 0, width, height);
-        pushStyle();
-        pushMatrix();
-        visualizers[select].retrieveSound();
-        // strokeCap(ROUND);
-        // shader(spriteShader, POINTS);
-        visualizers[select].draw();
-        blendMode(BLEND);
-        popMatrix();
-        popStyle();
-        noLights();
-        updateGui();
-        contrast = visualizers[select].contrast;
-    } 
-
-    volumeBar.visible = showInterface;
-
-    if (visualizers[select].sampleParticleMode) {
-        float avgFr = visualizers[select].sampleFrameRate();
-        if (avgFr > 0) {
-            visualizers[select].adjustDetail(avgFr);
-        }
     }
+}
 
+void showNameIfNeeded() {
     if (showName) {
-        background(0);
-        stroke(255);
-        image(myMovie, 0, 0, width, height);
         textFont(nameFont, 100+100*input.mix.level());
         beat.detect(input.mix);
-        textAlign(CENTER);
         String name = names[nameIndex];
         if (increment%8==0){
             fill(255,255,255); 
@@ -217,20 +190,73 @@ void draw() {
     }
 }
 
+void showAnimationIfNeeded() {
+    if (showAnimation) {
+        pushStyle();
+        pushMatrix();
+        visualizers[select].retrieveSound();
+        // strokeCap(ROUND);
+        // shader(spriteShader, POINTS);
+        visualizers[select].draw();
+        blendMode(BLEND);
+        popMatrix();
+        popStyle();
+        noLights();
+        updateGui();
+
+        if (visualizers[select].sampleParticleMode) {
+            float avgFr = visualizers[select].sampleFrameRate();
+            if (avgFr > 0) {
+                visualizers[select].adjustDetail(avgFr);
+            }
+        }
+    } 
+}
+void showInterfaceIfNeeded() {
+    if (showInterface) {
+        // interfaceT = lerp(interfaceT, 255, .01);
+        if (interfaceT < 255) {
+            interfaceT += INTERFACE_FADE_RATE;
+            setGuiColors();
+        }
+        // tint(255, (int)interfaceT);
+        boolean handOn = false;
+        if (cp5.isMouseOver()) {
+            handOn = true;
+        }
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setVisible(true);
+        }
+        textAlign(CENTER, TOP);
+        // fill(255 - visualizers[select].contrast);
+        if (debugMode) {
+            visualizers[select].displayDebugText();
+        }
+        if (handOn) {
+            cursor(HAND);
+        } else {
+            cursor(ARROW);
+        }
+    } else {
+        checkMouse();
+        // interfaceT = lerp(interfaceT, 0, .2);
+        if (interfaceT > 0) {
+            interfaceT -= INTERFACE_FADE_RATE;
+            setGuiColors();
+        } else {
+            setInterfaceVisibility(false);
+        }
+        for (int i = 0; i < buttons.length; i++) {
+            buttons[i].setVisible(false);
+        }
+        // tint(255, (int)interfaceT);
+    }
+    volumeBar.visible = showInterface;
+}
 // Called every time a new frame is available to read
 void movieEvent(Movie m) {
   m.read();
 }
-
-// void mousePressed() {
-//     for (int i = 0; i < dots.length; i++) {
-//         if (dots[i].overDot) {
-//             select = i;
-//             switchVisualizer();
-//             break;
-//         }
-//     }        
-// }
 
 void checkMouse() {
     if (mouseX != lastMouseX && mouseY != lastMouseY) {
@@ -266,15 +292,10 @@ void updateGui() {
     buttons[11].setArrayValue(select == 0 ? on : off);
     buttons[12].setArrayValue(select == 1 ? on : off);
     buttons[13].setArrayValue(select == 2 ? on : off);
-
-    // image(loadImage("Button.png"), mouseX, mouseY);
-    // if(mousePressed){
-    //     println(mouseX + " " + mouseY);
-    // }
 }
 
 void guiSetup(ControlFont font){
-    volumeBar = new VolumeBar(width - (212), TEXT_OFFSET+69, "VolumeBackground.png", "VolumeMid.png", "VolumeEnd.png", "VolumeBackgroundI.png", "VolumeMidI.png", "VolumeEndI.png");
+    volumeBar = new VolumeBar(displayWidth - 500, TEXT_OFFSET+69, "VolumeBackground.png", "VolumeMid.png", "VolumeEnd.png", "VolumeBackgroundI.png", "VolumeMidI.png", "VolumeEndI.png");
     interfaceLabel = cp5.addTextlabel("label")
             .setText("Press [h] To Hide Interface")
             .setFont(font)
@@ -313,7 +334,8 @@ void guiSetup(ControlFont font){
     buttonLabels[14] = cp5.addTextlabel("nameT").setText("Name [n]");
     buttons[15] = animation = cp5.addCheckBox("animation").addItem("animation [v]", 0);
     buttonLabels[15] = cp5.addTextlabel("animationT").setText("Animation [v]");
-
+    buttons[16] = background = cp5.addCheckBox("background").addItem("background [m]", 0);
+    buttonLabels[16] = cp5.addTextlabel("backgroundT").setText("Background [m]");
     
     float startHeight = TEXT_OFFSET + 92;
     PImage normal = loadImage("Button.png");
@@ -350,6 +372,9 @@ void guiSetup(ControlFont font){
     buttonLabels[11].setPosition(width - (212 - 58), startHeight - 20);
     buttonLabels[12].setPosition(width - (212 - 12), startHeight + 26);
     buttonLabels[13].setPosition(displayWidth / 2 - 25, TEXT_OFFSET);
+
+
+
     setGuiColors();
 }
 
@@ -401,12 +426,11 @@ void controlEvent(ControlEvent theEvent) {
     } else if (theEvent.isFrom(droplet)) {
         select = 2;
     } else if (theEvent.isFrom(name)) {
-        // TODO: show on // off name
         showName = !showName;
-        if (showName == true) {
-        }
     } else if (theEvent.isFrom(animation)) {
         showAnimation = !showAnimation;
+    } else if (theEvent.isFrom(background)) {
+        showBackground = !showBackground;
     }
 }
 
@@ -416,7 +440,6 @@ void keyPressed() {
             debugMode = !debugMode;
             break;
         case 'h':
-            println("h pressed");
             showInterface = !showInterface;
             if (showInterface) {
                 setInterfaceVisibility(true);
@@ -429,12 +452,19 @@ void keyPressed() {
         case 'I':
             visualizers[select].contrast = 255 - visualizers[select].contrast;
             setGuiColors();
-            break;            
+            break;
         case 'n':
+            showName = !showName;
+            break;
+        case 'v':
+            showAnimation = !showAnimation;
+            break;
+        case 'l':
             nameIndex++;
             if (nameIndex == names.length) {
                 nameIndex = 0;
             }
+            println("Currently selected is: "+names[nameIndex]);
             break;
         default:
             break;
