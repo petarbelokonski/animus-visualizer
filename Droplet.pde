@@ -471,7 +471,7 @@ class Droplet extends Visualizer {
         revolve = !revolve;
         rotater.autoSwitch();
         if (!revolve) {
-            rotater.initRotate(0, 0, (int) frameRate * 10);    
+            rotater.initRotate(0, (int) frameRate * 10);    
         }
     }
     

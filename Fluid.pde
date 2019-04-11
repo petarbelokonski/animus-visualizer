@@ -468,11 +468,11 @@ class Fluid extends Visualizer {
 
     @Override
     void autoPan() {
-        float camZ = HORIZ_SAMPLE_NUM * REFRESH/ 1.99;
-        float camY = -150;
+        //float camZ = HORIZ_SAMPLE_NUM * REFRESH/ 1.99;
+        //float camY = -150;
         if (frontView) {
-            camZ = HORIZ_SAMPLE_NUM * REFRESH / 2.1;
-            camY = 160;
+            //camZ = HORIZ_SAMPLE_NUM * REFRESH / 2.1;
+            //camY = 160;
         }
         if (revolve) {
             camera.initMoveCenter(0, 0, HORIZ_SAMPLE_NUM * REFRESH / 2, (int) frameRate / 2);

@@ -22,8 +22,8 @@ class RotationTracker {
         autoRotate = false;
         rotating = false;  
     }
-    
-    void initRotate(float xDestination, float yDestination, int time) {
+    //void initRotate(float xDestination, float yDestination, int time) {
+    void initRotate(float xDestination, int time) {
         initRotate(xDestination, xDestination, 0, time);
     }
     
