@@ -278,9 +278,8 @@ void draw() {
                 translate(displayWidth,displayHeight);
                 pushMatrix();
                 scale(1, -1);
-                popMatrix();
-
                 text("ARKS", displayWidth*1/2, displayHeight/2);
+                popMatrix();
             }
  
             if (level>0.4 && level<0.5){
@@ -291,9 +290,8 @@ void draw() {
 
                 pushMatrix();
                 scale(1, -1);
-                popMatrix();
-
                 text("ARKS", displayWidth-random(displayWidth*1/2,displayWidth/1/2), displayHeight-200);
+                popMatrix();
                 
             }
 
