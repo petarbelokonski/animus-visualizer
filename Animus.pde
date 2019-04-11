@@ -5,7 +5,6 @@ import processing.video.*;
 // import processing.sound.*;
 import ddf.minim.analysis.*;
 
-
 final float PHI = (1.0 + sqrt(5.0)) / 2.0;
 final int FONT_SIZE = 14;
 final int TEXT_OFFSET = 20;
@@ -30,7 +29,7 @@ Textlabel interfaceLabel;
 boolean load;
 float sliderVal;
 PImage logo;
-PFont font;
+PFont font, nameFont;
 // PageDot[] dots;
 boolean showInterface;
 boolean debugMode;
@@ -41,19 +40,8 @@ PImage cam, modeBackground;
 
 boolean showName, showAnimation;
 
-PFont f, nameFont;
 String message = "Purple Banana Syndicate Raw Dope Bass 2.";
 
-// Global variables
-ArrayList<Particle> particlesme = new ArrayList<Particle>();
-int pixelSteps = 6; // Amount of pixels to skip
-boolean drawAsPoints = false;
-ArrayList<String> words = new ArrayList<String>();
-int wordIndex = 0;
-color bgColor = color(255, 100);
-String fontName = "Arial Bold";
-
-//MyThread thread;
 BeatDetect beat;
 Movie myMovie;
 
@@ -95,32 +83,18 @@ void setup() {
     ellipseMode(CENTER);
     ellipseMode(RADIUS);
 
-    // dots = new PageDot[visualizers.length];
-    // float dist = 13;
-    // for (int i = 0; i < dots.length; i++) {
-    //     float w = (dots.length) * dist - (dist / 2);
-    //     float dx = (width / 2 - w) + (2 * dist * i + (dist / 2));
-    //     dots[i] = new PageDot(dx, height - dist * 2, dist / 2, visualizers[i].name);
-    // }
     buttons = new CheckBox[16];
     buttonLabels = new Textlabel[16];
     cp5 = new ControlP5(this);
     guiSetup(cFont);
     visualizers[select].setup();
 
-
-    background(255, 204, 0);
-    
+    background(255, 204, 0);    
     beat = new BeatDetect(input.bufferSize(), input.sampleRate());
-
     nameFont = createFont("agency-fb.ttf",256,true);
-
     myMovie = new Movie(this, "cover5.mov");
     myMovie.loop();
-    
     fft = new FFT(input.bufferSize(), input.sampleRate());
-    // fft.input(input);
-
 }
 
 /// TODO:
@@ -135,8 +109,6 @@ void setup() {
 /// - draw lines positioned randomly with the text which sized also based on equalizer
 ///
 //
-
-
 void draw() {
     if (showInterface) {
         // interfaceT = lerp(interfaceT, 255, .01);
@@ -144,21 +116,16 @@ void draw() {
             interfaceT += INTERFACE_FADE_RATE;
             setGuiColors();
         }
-        
         // tint(255, (int)interfaceT);
-    
         boolean handOn = false;
         if (cp5.isMouseOver()) {
             handOn = true;
         }
-        
         for (int i = 0; i < buttons.length; i++) {
             buttons[i].setVisible(true);
         }
-
         textAlign(CENTER, TOP);
         // fill(255 - visualizers[select].contrast);
-
         if (debugMode) {
             visualizers[select].displayDebugText();
         }
@@ -176,18 +143,14 @@ void draw() {
         } else {
             setInterfaceVisibility(false);
         }
-
-         for (int i = 0; i < buttons.length; i++) {
+        for (int i = 0; i < buttons.length; i++) {
             buttons[i].setVisible(false);
         }
-
         // tint(255, (int)interfaceT);
     }
 
-
   if (showAnimation) {
-     image(myMovie, 0, 0, width, height);
-
+        image(myMovie, 0, 0, width, height);
         pushStyle();
         pushMatrix();
         visualizers[select].retrieveSound();
@@ -212,182 +175,58 @@ void draw() {
     }
 
     if (showName) {
-
-    background(0);
-    stroke(255);
-
-    image(myMovie, 0, 0, width, height);
-  
-    //     int x = 10;
-
-    //     for (int i = 0; i < message.length(); i++) {  
-    //       textFont(nameFont, 66+50*input.mix.get(i));
-    //       text(message.charAt(i),400+x,height/2);
-    //        // textWidth() spaces the characters out properly.
-    //        x += textWidth(message.charAt(i)); 
-    //     }
-            
-    
-            
-            // textFont(nameFont, 150);
-                       textFont(nameFont, 100+100*input.mix.level());
-
-            
-            beat.detect(input.mix);
-            textAlign(CENTER);
-//   draw the waveforms so we can see what we are monitoring
-    // print(input.bufferSize());
-//    for(int i = 0; i < input.bufferSize()-1; i+=32) {
-
-        //  line( i, 50 + input.left.get(i)*50, i+1, 50 + input.left.get(i+1)*50 );
-        //     line( i, 150 + input.right.get(i)*50, i+1, 150 + input.right.get(i+1)*50 );
-            // if(i%31==1) {
-        
-            if (increment%8==0){
-                fill(255,255,255); 
-                
-                text("ARKS", displayWidth*1/2, displayHeight*1/2);
-            }
-             else{ text("ARKS", displayWidth*1/2, displayHeight*1/2);
-            }
-
-             if(increment%32==0){
-                // textFont(nameFont, displayWidth);
-                fill(15,18,51); 
-                // fill(input.mix.get(increment)*200+20, input.mix.get(250)*100+15, 50);  
-
-                text("ARKS", displayWidth*1/2, displayHeight*1/2);
-            }
-            
-
-            level = input.mix.level();
-
-             if (level>0.1 && level<0.2){
-                textFont(nameFont, displayWidth/4);
-                fill(255,255,255,80);  
-
-                text("ARKS", displayWidth*1/2, displayHeight*1/2);
-
-            }
-
-             if (level>0.2 && level<0.3){
-                textFont(nameFont, displayWidth/12);
-                fill(255,255,255,57);  
-
-                
-                pushMatrix();
-                translate(displayWidth,displayHeight);
-                scale(1, -1);
-                text("ARKS", displayWidth*1/2, displayHeight/2);
-                popMatrix();
-            }
- 
-            if (level>0.4 && level<0.5){
-
-                textFont(nameFont, displayWidth/2);
-                fill(15,18,51);  
-
-
-                pushMatrix();
-                scale(1, -1);
-                text("ARKS", displayWidth, displayHeight-200);
-                popMatrix();
-                
-            }
-
-            increment+=2;
-            if (increment >= input.bufferSize() ){
-                increment = 0;
-            } 
-            
-//    }
-//     //   textFont(nameFont, 66+input.left.get(i)*2);
-//      print(input.mix.get(i));
-
-//         if (input.left.get(i)%8==1) {
-
-       
-
-            // fill(255,255,255);
-            // if (beat.isKick()) {
-            //     fill(10, 50, 50);  
-            //     text("Purple Banana Syndicate", displayWidth*1/2, displayHeight*1/2);
-                
-            // } else if (beat.isSnare()) {
-            //     fill(input.mix.level()*110, 100, 50);  
-            //     text("Purple Banana Syndicate", displayWidth*1/15, displayHeight*1/3+random(-1,1)*1400);
-            // } else {
-            //     fill(218, 150, 150);  
-            //     text("Purple Banana Syndicate", displayWidth*1/17, displayHeight*1/2+random(-200,300));
-                
-            // }       
-
-        // } 
-// displayWidth, displayHeight
-    //  line( i, 50 + input.left.get(i)*50, i+1, 50 + input.left.get(i+1)*50 );
-    //  line( i, 150 + input.right.get(i)*50, i+1, 150 + input.right.get(i+1)*50 );
-//   }
-
-
-// text("Purple Banana Syndicate", 400+input.left.get(i)*2, 0);
-
-        // fft.forward(input.mix);
-
-        // for (int i = 0; i < fft.specSize(); i++) {
-        //     textFont(nameFont, 66 + fft.getBand(i));
-        //     // text("Purple Banana Syndicate", 400, 0);   
-        //     line(i, height, i, height - fft.getBand(i) * 4);
-        //     // line(i, height, i, height - fft.getBand(i) * 4);
-        // }
-
-        // image(myMovie, 0, 0, width, height);
-
-        // beat.detect(input.mix);
-        // textAlign(CENTER, TOP);
-        // fill(255,255,255);
-        // if (beat.isKick()) {
-            // textFont(nameFont, 66);
-            // text("Purple Banana Syndicate", 400+random(12,36), 0);    
-        //     fill(151,103,134);
-        //     text("Purple Banana Syndicate", 400+random(12,36), 0);    
-        //     fill(111,13,34);
-        //     text("Purple Banana Syndicate", 400+random(12,36), random(12,36));    
-        // } else if (beat.isSnare()) {
-
-        
-
-        //     textFont(nameFont, 26);
-        //     text("Purple Banana Syndicate", 400-random(12,36), 0);
-        // } else {
-        //     textFont(nameFont, 36);
-        //     text("Purple Banana Syndicate", 400, 0); 
-        // }
-        // //textFont(f);         
-        // int x = 10;
-        // for (int i = 0; i < message.length(); i++) {
-        //    textSize(random(12,36));
-        //    text(message.charAt(i),x,height/2);
-        //    // textWidth() spaces the characters out properly.
-        //    x += textWidth(message.charAt(i)); 
-        // }
-        ////noLoop()
-        
-           // Background & motion blur
-        //fill(bgColor);
-        //noStroke();
-        //rect(0, 0, width*2, height*2);
+        background(0);
+        stroke(255);
+        image(myMovie, 0, 0, width, height);
+        textFont(nameFont, 100+100*input.mix.level());
+        beat.detect(input.mix);
+        textAlign(CENTER);
+        if (increment%8==0){
+            fill(255,255,255); 
+            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+        } else {
+            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+        }
+        if(increment%32==0){
+            fill(15,18,51); 
+            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+        }
+        level = input.mix.level();
+        if (level>0.1 && level<0.2){
+            textFont(nameFont, displayWidth/4);
+            fill(255,255,255,80);  
+            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+        }
+        if (level>0.2 && level<0.3){
+            textFont(nameFont, displayWidth/12);
+            fill(255,255,255,57);  
+            pushMatrix();
+            translate(displayWidth,displayHeight);
+            scale(1, -1);
+            text("ARKS", displayWidth*1/2, displayHeight/2);
+            popMatrix();
+        }
+        if (level>0.4 && level<0.5){
+            textFont(nameFont, displayWidth/2);
+            fill(15,18,51);
+            pushMatrix();
+            scale(1, -1);
+            text("ARKS", displayWidth, displayHeight-200);
+            popMatrix();
+        }
+        increment+=2;
+        if (increment >= input.bufferSize() ){
+            increment = 0;
+        } 
         noLights();
         updateGui();
     }
-
-  
 }
 
 // Called every time a new frame is available to read
 void movieEvent(Movie m) {
   m.read();
 }
-
 
 // void mousePressed() {
 //     for (int i = 0; i < dots.length; i++) {
