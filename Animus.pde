@@ -252,7 +252,7 @@ void draw() {
 
              if(increment%32==0){
                 // textFont(nameFont, displayWidth);
-fill(0,255,0); 
+                fill(15,18,51); 
                 // fill(input.mix.get(increment)*200+20, input.mix.get(250)*100+15, 50);  
 
                 text("ARKS", displayWidth*1/2, displayHeight*1/2);
@@ -284,9 +284,10 @@ fill(0,255,0);
                 fill(255,255,255,57);  
 
                 
+                translate(displayWidth,displayHeight);
                 pushMatrix();
-                scale(10, -2);
-                text("ARKS", displayWidth*1/2, displayHeight*1/2);
+                scale(1, -1);
+                text("ARKS", displayWidth*1/2, displayHeight/2);
                 popMatrix();
             }
 
