@@ -274,10 +274,12 @@ void draw() {
                 textFont(nameFont, displayWidth/2);
                 fill(0,0,0,57);  
 
+
                 pushMatrix();
                 scale(1, -1);
-                text("ARKS", displayWidth*1/2, displayHeight*1/2);
                 popMatrix();
+
+                text("ARKS", displayWidth*1/2, displayHeight*1/2);
             }
  
             if (level>0.4 && level<0.5){
@@ -288,8 +290,9 @@ void draw() {
                 translate(displayWidth,displayHeight);
                 pushMatrix();
                 scale(1, -1);
-                text("ARKS", displayWidth*1/2, displayHeight/2);
                 popMatrix();
+
+                text("ARKS", displayWidth*1/2, displayHeight/2);
             }
 
             increment+=2;
