@@ -60,12 +60,11 @@ Movie myMovie;
 FFT fft;
 float[] spectrum = new float[512];
 int increment = 0;
-int two = 0;
 float level;
 
 public void settings() {
   size(displayWidth, displayHeight, P3D);
-  fullScreen();
+  fullScreen(P3D, SPAN);
   smooth(8);
 }
 
