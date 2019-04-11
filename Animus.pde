@@ -246,7 +246,7 @@ void draw() {
             if (increment%8==0){
                 fill(255,255,255); 
                 
-            text("ARKS", displayWidth*1/2, displayHeight*1/2);
+                text("ARKS", displayWidth*1/2, displayHeight*1/2);
             }
              else{ text("ARKS", displayWidth*1/2, displayHeight*1/2);
             }
@@ -264,25 +264,13 @@ void draw() {
 
              if (level>0.1 && level<0.2){
                 textFont(nameFont, displayWidth/4);
-                fill(255,255,255,57);  
+                fill(255,255,255,80);  
 
                 text("ARKS", displayWidth*1/2, displayHeight*1/2);
 
             }
 
              if (level>0.2 && level<0.3){
-                textFont(nameFont, displayWidth/2);
-                fill(0,0,0,57);  
-
-
-                pushMatrix();
-                scale(1, -1);
-                popMatrix();
-
-                text("ARKS", displayWidth*1/2, displayHeight*1/2);
-            }
- 
-            if (level>0.4 && level<0.5){
                 textFont(nameFont, displayWidth/12);
                 fill(255,255,255,57);  
 
@@ -293,6 +281,20 @@ void draw() {
                 popMatrix();
 
                 text("ARKS", displayWidth*1/2, displayHeight/2);
+            }
+ 
+            if (level>0.4 && level<0.5){
+
+                textFont(nameFont, displayWidth/2);
+                fill(15,18,51);  
+
+
+                pushMatrix();
+                scale(1, -1);
+                popMatrix();
+
+                text("ARKS", displayWidth-random(displayWidth*1/2,displayWidth/1/2), displayHeight-200);
+                
             }
 
             increment+=2;
