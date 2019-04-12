@@ -44,7 +44,7 @@ Movie myMovie;
 FFT fft;
 float[] spectrum = new float[512];
 int increment = 0;
-float level;
+float lastLevel, level;
 
 float opacityFade;
 
@@ -143,34 +143,60 @@ void showBackgroundIfNeeded() {
     }
 }
 
+
+
 void showNameIfNeeded() {
     if (showName) {
-        textFont(nameFont, 100+100*input.mix.level());
+        textFont(nameFont, 100+400*input.mix.level());
         beat.detect(input.mix);
         String name = names[nameIndex];
-        if (increment%8==0){
-            fill(255,255,255); 
-            text(name, displayWidth*1/2, displayHeight*1/2);
-        } else {
-            text(name, displayWidth*1/2, displayHeight*1/2);
-        }
-        if(increment%32==0){
-            fill(15,18,51); 
-            text(name, displayWidth*1/2, displayHeight*1/2);
-        }
+        // if (increment%8==0){
+        println("level: "+input.mix.level());
+        fill(255,255-10*(input.mix.level()*100),255-4*(input.mix.level()*100)); 
+        text(name, displayWidth*1/2, displayHeight*1/2);
+        // } else {
+        //     text(name, displayWidth*1/2, displayHeight*1/2);
+        // }
+        // if(increment%32==0){
+        //     fill(15,18,51); 
+        //     text(name, displayWidth*1/2, displayHeight*1/2);
+        // }
+
         level = input.mix.level();
+        
+        float dif = abs(abs(level) - abs(lastLevel));
+        if ((level*40)/100 > dif) {
+            textFont(nameFont, displayWidth/4);
+            fill(0,255,0,80);  
+            text(name, displayWidth*1/2, displayHeight*1/2);
+        }
+
+        if (increment % 4 == 0 ) {
+            lastLevel = level;
+        }
+
+
         if (level>0.1 && level<0.2){
             textFont(nameFont, displayWidth/4);
             fill(255,255,255,80);  
             text(name, displayWidth*1/2, displayHeight*1/2);
         }
-        if (level>0.2 && level<0.3){
+        if (level>0.2 && level<0.25){
             textFont(nameFont, displayWidth/12);
             fill(255,255,255,57);  
             pushMatrix();
-            translate(displayWidth,displayHeight);
+            translate(displayWidth/2,displayHeight/2);
             scale(1, -1);
             text(name, displayWidth*1/2, displayHeight/2);
+            popMatrix();
+        }
+        if (level>0.25 && level<0.3){
+            textFont(nameFont, displayWidth/3);
+            fill(255,255-10*(input.mix.level()*100),255-4*(input.mix.level()*100), 57); 
+            pushMatrix();
+            translate(displayWidth,displayHeight);
+            scale(1, -1);
+            text(name, displayWidth*1/2, displayHeight/4);
             popMatrix();
         }
         if (level>0.4 && level<0.5){
